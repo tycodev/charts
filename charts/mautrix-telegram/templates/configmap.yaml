@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "mautrix-telegram.fullname" . }}
+  labels:
+    {{- include "mautrix-telegram.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    {{- $config := .Files.Get "files/config.yaml" | toString | fromYaml }}
+    {{- $merged := merge .Values.configuration $config }}
+    {{- toYaml $merged | nindent 4 }}
+    
+
