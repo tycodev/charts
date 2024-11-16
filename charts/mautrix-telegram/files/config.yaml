@@ -516,11 +516,13 @@ bridge:
   #        * - All Matrix users
   #   domain - All users on that homeserver
   #     mxid - Specific user
-  permissions:
-    "*": "relaybot"
-    "public.example.com": "user"
-    "example.com": "full"
-    "@admin:example.com": "admin"
+  # Sample given below:
+  # permissions:
+  #   "*": "relaybot"
+  #   "public.example.com": "user"
+  #   "example.com": "full"
+  #   "@admin:example.com": "admin"
+  permissions: {}
   # Options related to the message relay Telegram bot.
   relaybot:
     private_chat:
