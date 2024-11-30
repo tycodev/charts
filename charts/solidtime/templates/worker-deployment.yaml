@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "solidtime.fullname" . }}-worker
+  labels:
+    app.kubernetes.io/name: {{ include "solidtime.name" . }}-worker
+    {{- include "solidtime.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.queue.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "solidtime.name" . }}
+      app.kubernetes.io/instance: {{ .Chart.Name }}-worker
+  template:
+    metadata:
+      {{- with .Values.queue.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ include "solidtime.name" . }}
+        app.kubernetes.io/instance: {{ .Chart.Name }}-worker
+        {{- include "solidtime.labels" . | nindent 8 }}
+        {{- with .Values.queue.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.queue.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.queue.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-worker
+          securityContext:
+            {{- toYaml .Values.queue.securityContext | nindent 12 }}
+          env:
+            - name: CONTAINER_MODE
+              value: worker   
+            - name: WORKER_COMMAND
+              value: "php /var/www/html/artisan queue:work"         
+          envFrom:
+            - configMapRef:
+                name: {{ include "solidtime.fullname" . }}
+            - secretRef:
+                name: {{ include "solidtime.fullname" . }}
+          image: "{{ .Values.queue.image.repository }}:{{ .Values.queue.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.queue.image.pullPolicy }}
+          livenessProbe:
+            {{- toYaml .Values.queue.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.queue.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.queue.resources | nindent 12 }}
+          volumeMounts:
+            - name: app-data
+              mountPath: /var/www/html/storage    
+            - name: app-cache
+              mountPath: /var/www/html/bootstrap/cache    
+            - name: tmp-dir
+              mountPath: /tmp          
+            - name: log-dir
+              mountPath: /var/log/supervisor                                
+          {{- with .Values.queue.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: app-data
+          persistentVolumeClaim:
+            claimName: {{ include "solidtime.fullname" . }}     
+        - name: app-cache
+          emptyDir: 
+            sizeLimit: {{ .Values.queue.cache.sizeLimit | quote }}       
+        - name: tmp-dir
+          emptyDir: 
+            sizeLimit: {{ .Values.queue.tmp.sizeLimit | quote }}              
+        - name: log-dir
+          emptyDir: 
+            sizeLimit: {{ .Values.queue.logs.sizeLimit | quote }}                     
+      {{- with .Values.queue.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queue.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queue.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.queue.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

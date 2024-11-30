@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "solidtime.fullname" . }}-scheduler
+  labels:
+    app.kubernetes.io/name: {{ include "solidtime.name" . }}-scheduler
+    {{- include "solidtime.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.scheduler.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "solidtime.name" . }}
+      app.kubernetes.io/instance: {{ .Chart.Name }}-scheduler
+  template:
+    metadata:
+      {{- with .Values.scheduler.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        app.kubernetes.io/name: {{ include "solidtime.name" . }}
+        app.kubernetes.io/instance: {{ .Chart.Name }}-scheduler
+        {{- include "solidtime.labels" . | nindent 8 }}
+        {{- with .Values.scheduler.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.scheduler.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.scheduler.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-scheduler
+          env:
+            - name: CONTAINER_MODE
+              value: scheduler
+          securityContext:
+            {{- toYaml .Values.scheduler.securityContext | nindent 12 }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "solidtime.fullname" . }}
+            - secretRef:
+                name: {{ include "solidtime.fullname" . }}        
+          image: "{{ .Values.scheduler.image.repository }}:{{ .Values.scheduler.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.scheduler.image.pullPolicy }}
+          livenessProbe:
+            {{- toYaml .Values.scheduler.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.scheduler.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.scheduler.resources | nindent 12 }}
+          volumeMounts:
+            - name: app-data
+              mountPath: /var/www/html/storage       
+            - name: app-cache
+              mountPath: /var/www/html/bootstrap/cache
+            - name: tmp-dir
+              mountPath: /tmp  
+            - name: log-dir
+              mountPath: /var/log/supervisor
+          {{- with .Values.scheduler.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: app-data
+          persistentVolumeClaim:
+            claimName: {{ include "solidtime.fullname" . }}     
+        - name: app-cache
+          emptyDir: 
+            sizeLimit: {{ .Values.scheduler.cache.sizeLimit | quote }} 
+        - name: tmp-dir
+          emptyDir: 
+            sizeLimit: {{ .Values.scheduler.tmp.sizeLimit | quote }}    
+        - name: log-dir
+          emptyDir: 
+            sizeLimit: {{ .Values.scheduler.logs.sizeLimit | quote }}                          
+      {{- with .Values.scheduler.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.scheduler.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.scheduler.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.scheduler.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

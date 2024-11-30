@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "solidtime.fullname" . }}
+  labels:
+    {{- include "solidtime.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "solidtime.fullname" . }}-app
+    app.kubernetes.io/instance: {{ include "solidtime.fullname" . }}-app
