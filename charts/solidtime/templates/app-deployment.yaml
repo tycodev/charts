@@ -31,6 +31,43 @@ spec:
       {{- end }}
       securityContext:
         {{- toYaml .Values.app.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- if .Values.app.enableDefaultInitContainers }}
+        - name: create-directories
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              cd /var/www/html && \
+              mkdir -p storage/framework/{sessions,views,cache,testing} && \
+              mkdir -p storage/logs
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
+          volumeMounts:
+            - name: app-data
+              mountPath: /var/www/html/storage
+            - name: app-cache
+              mountPath: /var/www/html/bootstrap/cache  
+          {{- with .Values.app.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.app.initContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       containers:
         - name: {{ .Chart.Name }}-app
           env:
