@@ -48,7 +48,7 @@ jobs:
         with:
           name: solidtime
           repository: tycodev
-          tag: 0.1.1
+          tag: 0.1.2
           registry: ${{ env.REGISTRY }}
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
