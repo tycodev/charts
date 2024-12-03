@@ -9,7 +9,6 @@ data:
   APP_DOMAIN: {{ .Values.config.app.domain | quote }}
   APP_ENV: {{ .Values.config.app.env | quote }}
   APP_FORCE_HTTPS: {{ .Values.config.app.forceHttps | quote }}
-  APP_KEY: {{ .Values.config.app.key | quote }}
   APP_NAME: {{ .Values.config.app.name | quote }}
   APP_URL: {{ .Values.config.app.url | quote }}
   DB_CONNECTION: {{ .Values.config.db.connection | quote }}
