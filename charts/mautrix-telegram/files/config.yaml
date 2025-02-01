@@ -185,7 +185,7 @@ bridge:
   sync_direct_chat_list: false
   # Servers to always allow double puppeting from
   double_puppet_server_map:
-    example.com: https://example.com
+    # example.com: https://example.com
   # Allow using double puppeting from any server with a valid client .well-known file.
   double_puppet_allow_discovery: false
   # Shared secrets for https://github.com/devture/matrix-synapse-shared-secret-auth
@@ -196,7 +196,7 @@ bridge:
   # If using this for other servers than the bridge's server,
   # you must also set the URL in the double_puppet_server_map.
   login_shared_secret_map:
-    example.com: foobar
+    # example.com: foobar
   # Set to false to disable link previews in messages sent to Telegram.
   telegram_link_preview: true
   # Whether or not the !tg join command should do a HTTP request
