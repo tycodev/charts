@@ -50,8 +50,8 @@ spec:
           {{- end }}
       volumes:
         - name: config-volume
-          configMap:
-            name: {{ include "pinchflat.fullname" . }}
+          persistentVolumeClaim:
+            claimName: {{ include "pinchflat.fullname" . }}
             optional: false      
       {{- with .Values.volumes }}            
         {{- toYaml . | nindent 8 }}
